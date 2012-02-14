@@ -13,38 +13,6 @@ struct ThrdCtlBlk *Head = NULL;
 Tid runningId = 0;
 
 
-//-------------------DELETE-------------------
-int main()
-{
-  Tid ret;
-  Tid ret2;
-
-  printf("Starting tests...\n");
-
-  /*
-   * Initial thread yields
-   */
-  ret = ULT_Yield(ULT_SELF);
-  assert(ret==ULT_NONE);
-  printf("Initial thread returns from Yield(SELF)\n");
-  ret = ULT_Yield(0); /* See ULT.h -- initial thread must be Tid 0 */
-  assert(ULT_isOKRet(ret));
-  printf("Initial thread returns from Yield(0)\n");
-  ret = ULT_Yield(ULT_ANY);
-  assert(ret == ULT_NONE);
-  printf("Initial thread returns from Yield(ANY)\n");
-  ret = ULT_Yield(0xDEADBEEF);
-  assert(ret == ULT_INVALID);
-  printf("Initial thread returns from Yield(INVALID)\n");
-  ret = ULT_Yield(16);
-  assert(ret == ULT_INVALID);
-  printf("Initial thread returns from Yield(INVALID2)\n");
-  
-  return 0;
-}
-
-//--------------------------------------------
-
 Tid ULT_CreateThread(void (*fn)(void *), void *parg)
 {
   assert(0); /* TBD */
