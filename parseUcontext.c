@@ -10,7 +10,7 @@
 
 #define SOL 99
 
-unsigned int probeUCStack(char *string);
+unsigned int probeUCStack(ucontext_t s);
 
 int main(int argc, char **argv)
 {
@@ -27,10 +27,10 @@ int main(int argc, char **argv)
   err = getcontext(&mycontext);
   assert(!err);
 
-  printf("A ucontext_t is %d bytes\n", -999);
-  assert(0); // TBD: Fill in ucontext size above. Hint: use sizeof().
+  printf("A ucontext_t is %d bytes\n", sizeof(ucontext_t));
+  //assert(0); // TBD: Fill in ucontext size above. Hint: use sizeof().
 
-  unsigned int anotherSample = probeUCStack("Dummy argument.");
+  unsigned int anotherSample = probeUCStack(mycontext);
 
   /* 
    * Now, look inside of the ucontext you just saved.
@@ -44,8 +44,8 @@ int main(int argc, char **argv)
   /*
    * First, think about program counters (called eip in x86)
    */
-  printf("The memory address of the function main() is 0x%x\n", (unsigned int)-1);
-  printf("The memory address of the program counter (EIP) saved in mycontext is 0x%x\n", (unsigned int)-1);
+  printf("The memory address of the function main() is 0x%x\n", (unsigned int)&main);
+  printf("The memory address of the program counter (EIP) saved in mycontext is 0x%x\n", (unsigned int)mycontext.uc_mcontext.gregs[REG_EIP]);
 
   /*
    * Now, think about stacks. [Note.  The code following these comments
@@ -70,18 +70,18 @@ int main(int argc, char **argv)
    * Don't move on to the next part of the lab until you know how to change
    * the stack in a context when you manipulate a context to create a new thread.
    */
-  printf("The memory address of the local variable err is 0x%x\n", (unsigned int)-1);
-  printf("The memory address of the argument argc is 0x%x\n", (unsigned int)-1);
+  printf("The memory address of the local variable err is 0x%x\n", (unsigned int)&err);
+  printf("The memory address of the argument argc is 0x%x\n", (unsigned int)&argc);
   printf("The value of ucontext_t.uc_stack is 0x%x\n", (unsigned int)mycontext.uc_stack.ss_sp);
   printf("The value of anotherSample is 0x%x\n", anotherSample);
-  printf("The stack pointer stored as one of the registers (ESP) in uc_mcontext is 0x%x\n", (unsigned int)-1);
-  printf("The stack pointer stored as another one of the `registers` (UESP) in uc_mcontext is 0x%x\n", (unsigned int)-1);
+  printf("The stack pointer stored as one of the registers (ESP) in uc_mcontext is 0x%x\n", (unsigned int)mycontext.uc_mcontext.gregs[REG_ESP]);
+  printf("The stack pointer stored as another one of the `registers` (UESP) in uc_mcontext is 0x%x\n", (unsigned int)mycontext.uc_mcontext.gregs[REG_UESP]);
 
 
-  printf("The number of bytes pushed onto the stack between argc and err was 0x%x\n", (unsigned int)(0xFFFFFF));
+  printf("The number of bytes pushed onto the stack between argc and err was 0x%x\n", (unsigned int)&argc - (unsigned int)&err);
   /* Which is the right one to use? */
   printf("The number of bytes pushed onto the stack between err and when the stack was saved to mycontext was 0x%x\n", 
-         (unsigned int)(-1));
+         (unsigned int)&err - (unsigned int)&mycontext.uc_stack);
 
 
          return 0;  
@@ -98,8 +98,11 @@ int main(int argc, char **argv)
  * uc_stack.ss_sp saved in main().
  */
 unsigned int 
-probeUCStack(char *str)
+probeUCStack(ucontext_t s)
 {
-  assert(0); /* Write code for this function */
-  return 0xFFFFFFFF;
+
+  getcontext(&s);
+  //assert(0); /* Write code for this function */
+  //return 0xFFFFFFFF;
+  return *(int*)s.uc_stack.ss_sp; 
 }
