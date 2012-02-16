@@ -24,36 +24,58 @@ ULT_CreateThread(void (*fn)(void *), void *parg)
 		if (success != 1)
 			return success;
 		
+		return ULT_NONE;
 	}
   
-	ThrdCtlBlk* new_thread = malloc(sizeof(ThrdCtlBlk));
-	if(new_thread == NULL)
-		return ULT_NOMEMORY;
 	else
 	{
-		int count = 1;
-		ThrdCtlBlk* temp = my_queue->head;
-		if(temp->my_tid == 0)
-			temp = temp->my_next;
-		while(temp != NULL && temp->my_tid <= count)
+		ThrdCtlBlk* new_thread = malloc(sizeof(ThrdCtlBlk));
+		if(new_thread == NULL)
+			return ULT_NOMEMORY;
+		else
 		{
-			count++;
-			temp = temp->my_next;
+			int count = 1;
+			ThrdCtlBlk* temp = my_queue->head;
+			
+			if(temp != NULL && temp->my_tid == 0)
+				temp = temp->my_next;
+				
+			while(temp != NULL && temp->my_tid <= count)
+			{
+				count++;
+				temp = temp->my_next;
+			}
+	
+			if (count >= ULT_MAX_THREADS)
+				return ULT_NOMEMORY;
+	
+			new_thread->my_tid = count;
+			add_to_queue(my_queue, new_thread);
+			getcontext(&(new_thread->my_context));
+			//new_thread->my_context->uc_mcontext->gregs[REG_EIP] = &stub;
+			
+			//create stack
+			unsigned int *stack = malloc(ULT_MIN_STACK);
+			unsigned int *point = stack;
+			
+			if (stack == NULL)
+				return ULT_NOMEMORY;
+			
+			//change stack pointers
+			*point = (unsigned int)&fn;
+			point += sizeof(fn);
+			*point = (unsigned int)&parg;
+			point += sizeof(parg);
+			*point = (unsigned int) (new_thread->my_context.uc_mcontext.gregs[REG_EIP]);
+			new_thread->my_context.uc_mcontext.gregs[REG_EIP] = (unsigned int)&stub;
+			new_thread->my_context.uc_mcontext.gregs[REG_ESP] = (unsigned int)stack;
+			
+			return new_thread->my_tid;
 		}
 		
-		new_thread->my_tid = count;
-		add_to_queue(my_queue, new_thread);
-		getcontext(&(new_thread->my_context));
-		new_thread->my_context->uc_mcontext->gregs[REG_EIP] = &stub;
 		
-		//create stack
-		//change stack pointers
-		//push arguments onto stack
-		//return tid
+		return ULT_FAILED;
 	}
-	
-	
-	return ULT_FAILED;
 }
 
 
@@ -66,6 +88,8 @@ Tid ULT_Yield(Tid wantTid)
 		
 		if (success != 1)
 			return success;
+		
+		return ULT_NONE;
 	}
 	
 	if (wantTid < -2 || wantTid >= ULT_MAX_THREADS)
@@ -111,7 +135,9 @@ Tid ULT_Yield(Tid wantTid)
 	else
 	{
 		add_to_queue( my_queue, my_queue->running );
+		
 		ThrdCtlBlk* find_tcb = find_in_queue( my_queue, wantTid );
+		
 		
 		if (find_tcb == NULL)
 		{
@@ -121,6 +147,8 @@ Tid ULT_Yield(Tid wantTid)
 		
 		else
 		{
+			
+		
 			my_queue->running = find_tcb;
 			remove_from_queue( my_queue, find_tcb->my_tid );
 			return my_queue->running->my_tid;
@@ -141,6 +169,7 @@ Tid ULT_DestroyThread(Tid tid)
 		if (success != 1)
 			return success;
 		
+		return ULT_NONE;
 	}
 	
 	return ULT_FAILED;
@@ -170,7 +199,7 @@ void stub(void (*root)(void *), void *arg)
 	// thread starts here 
 	Tid ret; 
 	root(arg); // call root function 
-	ret = ULT_DestroyThread(ULT_SELF) 
+	ret = ULT_DestroyThread(ULT_SELF);
 	assert(ret == ULT_NONE); // we should only get here if we are the last thread. 
 	exit(0); // all threads are done, so process should exit
 

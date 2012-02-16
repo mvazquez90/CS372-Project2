@@ -12,8 +12,9 @@ typedef struct the_queue {
 } the_queue;
 
 Tid init_queue( the_queue* myQueue );
-void add_to_queue( the_queue* queue, ThrdCtlBlk* tcb );
+int add_to_queue( the_queue* queue, ThrdCtlBlk* tcb );
 ThrdCtlBlk* find_in_queue( the_queue* queue, Tid find_tid );
 int remove_from_queue( the_queue* queue, Tid find_tid );
+void print_queue( the_queue* queue );
 
 #endif
