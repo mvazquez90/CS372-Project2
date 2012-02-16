@@ -71,6 +71,9 @@ parseUcontext: parseUcontext.c
 ULT.o: ULT.c ULT.h  $(MOREH)
 	gcc -c $(CFLAGS) -o $@ ULT.c
 
+readyQueue.o: readyQueue.c readyQueue.h  $(MOREH)
+	gcc -c $(CFLAGS) -o $@ readyQueue.c
+
 interrupt.o: interrupt.c interrupt.h
 	gcc -c $(CFLAGS) -o $@ interrupt.c
 
@@ -78,14 +81,14 @@ interrupt.o: interrupt.c interrupt.h
 doTest.o: doTest.c basicThreadTests.h interrupt.h ULT.h  $(MOREH)
 	gcc -c $(CFLAGS) -o $@ doTest.c
 
-doTest: doTest.o libULT.a basicThreadTests.o 
-	gcc $(CFLAGS) -o $@ doTest.o basicThreadTests.o  $(ULT_LIB)
+doTest: doTest.o libULT.a basicThreadTests.o readyQueue.o 
+	gcc $(CFLAGS) -o $@ doTest.o basicThreadTests.o readyQueue.o  $(ULT_LIB)
 
 doTest2.o: doTest2.c basicThreadTests.h interrupt.h ULT.h  $(MOREH)
 	gcc -c $(CFLAGS) -o $@ doTest2.c
 
-doTest2: doTest2.o libULT.a basicThreadTests.o 
-	gcc $(CFLAGS) -o $@ doTest2.o basicThreadTests.o  $(ULT_LIB)
+doTest2: doTest2.o libULT.a basicThreadTests.o readyQueue.o 
+	gcc $(CFLAGS) -o $@ doTest2.o basicThreadTests.o readyQueue.o  $(ULT_LIB)
 
 showHandler.o: showHandler.c interrupt.h ULT.h $(MOREH)
 	gcc -c $(CFLAGS) -o $@ showHandler.c

@@ -1,7 +1,6 @@
 #ifndef _ULT_H_
 #define _ULT_H_
 #include <ucontext.h>
-#include <stdlib.h>
 
 typedef int Tid;
 #define ULT_MAX_THREADS 1024
@@ -10,10 +9,12 @@ typedef int Tid;
 
 
 typedef struct ThrdCtlBlk{
-  ucontext_t data;
-  Tid id;
-  struct ThrdCtlBlk* next;
-  struct ThrdCtlBlk* prev;
+
+  ucontext_t my_context;
+  Tid my_tid;
+  struct ThrdCtlBlk *my_next;
+  struct ThrdCtlBlk *my_prev;
+  
 } ThrdCtlBlk;
 
 
@@ -32,8 +33,6 @@ static const Tid ULT_NOMORE = -5;
 static const Tid ULT_NOMEMORY = -6;
 static const Tid ULT_FAILED = -7;
 
-//struct ThrdCtlBlk *Head = NULL;
-
 static inline int ULT_isOKRet(Tid ret){
   return (ret >= 0 ? 1 : 0);
 }
@@ -42,8 +41,8 @@ Tid ULT_CreateThread(void (*fn)(void *), void *parg);
 Tid ULT_Yield(Tid tid);
 Tid ULT_DestroyThread(Tid tid);
 
-
- 
+Tid first_call_func();
+void stub(void (*root)(void *), void *arg);
 
 
 
